@@ -3,10 +3,11 @@
 *Plugin Name: VP Reseller
 *Plugin URI: https://vtupress.com
 *Description: Add Reseller Feature to your VTU business
-*Version: 2.4.9
+*Version: 2.5.0
 *Author: Akor Victor
 *Author URI: https://facebook.com/akor.victor.39
 */
+
 if(!defined('ABSPATH')){
     $pagePath = explode('/wp-content/', dirname(__FILE__));
     include_once(str_replace('wp-content/' , '', $pagePath[0] . '/wp-load.php'));
@@ -60,6 +61,20 @@ function vp_addoption(){
 	}
 
 }
+
+require __DIR__.'/plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+	'https://github.com/bikendi-tech-solutions/vprest',
+	__FILE__,
+	'vprest'
+);
+//Set the branch that contains the stable release.
+$myUpdateChecker->setBranch('main');
+
+$myUpdateChecker->getVcsApi()->enableReleaseAssets();
+
 
 vp_addoption("rb",0);
 vp_addoption("resc",10000);
