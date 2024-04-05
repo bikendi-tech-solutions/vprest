@@ -3,7 +3,7 @@
 *Plugin Name: VP Reseller
 *Plugin URI: https://vtupress.com
 *Description: Add Reseller Feature to your VTU business
-*Version: 2.5.0
+*Version: 2.5.1
 *Author: Akor Victor
 *Author URI: https://facebook.com/akor.victor.39
 */
@@ -418,7 +418,22 @@ obj["level_name"] = name;
 obj["paywall"] = name;
 var text = "You've Been Upgraded To "+name;
 var the_name = text.toUpperCase();
+<?php
+
+$vp_temp = strtolower(vp_getoption("vp_template"));
+
+if($vp_temp == "msorg_template"){
+  ?>
+jQuery.LoadingOverlay("show");
+  <?php
+}else{
+  ?>
 jQuery("#cover-spin").show();
+  <?php
+}
+
+?>
+
 
 
 jQuery.ajax({
@@ -428,7 +443,18 @@ jQuery.ajax({
   'cache': false,
   "async": true,
   error: function (jqXHR, exception) {
-	  jQuery("#cover-spin").hide();
+<?php
+    if($vp_temp == "msorg_template"){
+  ?>
+jQuery.LoadingOverlay("hide");
+  <?php
+}else{
+  ?>
+jQuery("#cover-spin").hide();
+  <?php
+}
+
+?>
         var msg = "";
         if (jqXHR.status === 0) {
             msg = "No Connection. Verify Network.";
@@ -491,7 +517,18 @@ jQuery.ajax({
     },
   
   success: function(data){
-	  jQuery("#cover-spin").hide();
+<?php
+    if($vp_temp == "msorg_template"){
+  ?>
+jQuery.LoadingOverlay("hide");
+  <?php
+}else{
+  ?>
+jQuery("#cover-spin").hide();
+  <?php
+}
+
+?>
         if(data == "100"){
 		  swal({
   title: "Welcome",
@@ -513,7 +550,7 @@ jQuery.ajax({
 });
 	  }
 	  else{
-		 jQuery("#cover-spin").hide();
+		
 	swal({
   buttons: {
     cancel: "Why?",
