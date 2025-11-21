@@ -3,7 +3,7 @@
 *Plugin Name: VP Reseller
 *Plugin URI: https://vtupress.com
 *Description: Add Reseller Feature to your VTU business
-*Version: 2.5.2
+*Version: 2.5.3
 *Author: Akor Victor
 *Author URI: https://facebook.com/akor.victor.39
 */
@@ -144,6 +144,7 @@ $ud = vp_getuser($id, "vr_id", true);
 $data = get_userdata($id);
 
 ?>
+
 
 <?php
 global $wpdb;
