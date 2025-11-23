@@ -4508,7 +4508,7 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 
 							break;
 						case "cable":
-							if (is_plugin_active("vprest/vprest.php") && vp_getoption("setcable") == "checked" && is_plugin_active("bcmv/bcmv.php")) {
+							if (!is_plugin_active("vprest/vprest.php") || vp_getoption("setcable") != "checked" || !is_plugin_active("bcmv/bcmv.php")) {
 								$obj = new stdClass;
 								$obj->status = "200";
 								$obj->Successful = "false";
@@ -5158,7 +5158,7 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 							break;
 						case "bill":
 
-							if (is_plugin_active("vprest/vprest.php") && vp_getoption("setbill") == "checked" && is_plugin_active("bcmv/bcmv.php")) {
+							if (!is_plugin_active("vprest/vprest.php") || vp_getoption("setbill") != "checked" && !is_plugin_active("bcmv/bcmv.php")) {
 								$obj = new stdClass;
 								$obj->status = "200";
 								$obj->Successful = "false";
@@ -5255,7 +5255,6 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 							}
 
 							if ($discount_method == "direct") {
-								$amountv = $amountv;
 								$amount = $amountv;
 							} else {
 								$amountv = $actual_price;
@@ -5417,6 +5416,8 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 									$obj->Plan_Code = $cbill;
 									$obj->Type = $type;
 									$obj->Receiver = $meter_number;
+									$obj->Amount_Charged = $amountv;
+
 									//$obj->Response = harray_key_first1($response);
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 
@@ -5722,6 +5723,7 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 									$obj->Plan_Code = $cbill;
 									$obj->Type = $type;
 									$obj->Receiver = $meter_number;
+									$obj->Amount_Charged = $amountv;
 									$obj->Response = harray_key_first1($response);
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 
