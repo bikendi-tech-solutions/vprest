@@ -358,11 +358,11 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 				$msv = 1;
 				if ($vp_most_secured_version != $msv) {
 					$new_pin = rand(1111, 9999);
-					vp_updateuser($id, 'vr_id', uniqid($id));
+					// vp_updateuser($id, 'vr_id', uniqid($id));
 					//vp_updateuser($id,'vp_pin',$new_pin);
 					vp_updateuser($id, 'vp_most_secured_version', $msv);
 
-					die('{"status":"200","message":"Your Api Key Has Been Changed. Please Check Your Dashboard For The New Updated ApiKey"}');
+					//die('{"status":"200","message":"Your Api Key Has Been Changed. Please Check Your Dashboard For The New Updated ApiKey. Kindly restart the !account or !start command again if you are a bot user"}');
 				}
 
 				$vc = "custom";
