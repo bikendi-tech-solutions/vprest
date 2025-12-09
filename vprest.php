@@ -3,7 +3,7 @@
 *Plugin Name: VP Reseller
 *Plugin URI: https://vtupress.com
 *Description: Add Reseller Feature to your VTU business
-*Version: 2.5.5
+*Version: 2.5.6
 *Author: Akor Victor
 *Author URI: https://facebook.com/akor.victor.39
 */

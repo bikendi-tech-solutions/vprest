@@ -279,6 +279,9 @@ if (preg_match('/MSIE (\d+\.\d+);/', $agent)) {
 	//  echo "You're using Safari";
 	$browser = "SAFARI";
 }
+else{
+	$browser = 'UNIDENTIFIED';
+}
 
 
 //
