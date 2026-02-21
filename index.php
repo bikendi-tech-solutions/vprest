@@ -363,6 +363,8 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 				$current_user_id = $id;
 
 				$vend_lock = $wpdb->prefix . "vend_lock";
+    			$vend = sanitize_text_field($_POST['q']);
+
 
 				// 🔐 SINGLE-USE GUARANTEE (THIS LINE IS THE KEY)
 				try {
@@ -382,7 +384,7 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 
 				} catch (Exception $e) {
 					$wpdb->query("ROLLBACK");
-					die('Please try again');
+					die('Please try again!!');
 				}
 
 
