@@ -304,7 +304,7 @@ if ($vpdebug === "no") {
 } else {
 	$obj = new stdClass;
 	$wpdb->query('ROLLBACK');
-$obj->status = "200";
+	$obj->status = "200";
 	$obj->message = "Api Service Not Available [Debug Mode On]";
 
 	die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -312,9 +312,9 @@ $obj->status = "200";
 }
 
 
-				// 🔒 START TRANSACTION FIRST
-				// $wpdb->query("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
-				$wpdb->query("START TRANSACTION");
+// 🔒 START TRANSACTION FIRST
+// $wpdb->query("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+$wpdb->query("START TRANSACTION");
 
 if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey'])) {//if isset q, id, ud
 	$q = $_REQUEST['q'];
@@ -363,7 +363,7 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 				$current_user_id = $id;
 
 				$vend_lock = $wpdb->prefix . "vend_lock";
-    			$vend = sanitize_text_field($_POST['q']);
+				$vend = sanitize_text_field($_POST['q']);
 
 
 				// 🔐 SINGLE-USE GUARANTEE (THIS LINE IS THE KEY)
@@ -379,7 +379,7 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 
 					if ($inserted !== 1) {
 						$wpdb->query("ROLLBACK");
-						die('Please try again');
+						die("Please try again $current_user_id - $vend");
 					}
 
 				} catch (Exception $e) {
@@ -387,6 +387,15 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 					die('Please try again!!');
 				}
 
+				// 🔓 AUTO-UNLOCK: Delete the vend_lock row for this user when the script ends
+				// This covers ALL exit points (success, failure, every die()) automatically.
+				register_shutdown_function(function () use ($wpdb, $vend_lock, $current_user_id) {
+					$wpdb->delete(
+						$vend_lock,
+						array('user_id' => $current_user_id),
+						array('%d')
+					);
+				});
 
 
 				$vp_most_secured_version = vp_getuser($id, 'vp_most_secured_version', true);
@@ -438,7 +447,7 @@ if (isset($_REQUEST['q']) && isset($_REQUEST['id']) && isset($_REQUEST['apikey']
 							$bal = vp_getuser($id, "vp_bal", true);
 							$obj = new stdClass;
 							$wpdb->query('COMMIT');
-$obj->status = "100";
+							$obj->status = "100";
 							$obj->request_id = $uniqidvalue;
 							$obj->Successful = "true";
 							$obj->Id = $id;
@@ -454,7 +463,7 @@ $obj->status = "100";
 								if (!isset($_REQUEST[$key])) {
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->message = "$key required";
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -468,7 +477,7 @@ $obj->status = "200";
 							if ($type != "phone" && $type != "id") {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "type must be id or phone";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -491,7 +500,7 @@ $obj->status = "200";
 							if (!isset($array_ids[$plan_id])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "incorrect service id";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -508,7 +517,7 @@ $obj->status = "200";
 							if ($bal < $amount) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Insufficient Balance";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -670,7 +679,7 @@ $obj->status = "200";
 
 								$obj = new stdClass;
 								$wpdb->query('COMMIT');
-$obj->status = "100";
+								$obj->status = "100";
 								$obj->request_id = $uniqidvalue;
 								$obj->Successful = "true";
 								$obj->message = "Purchase Of $pname Was Successful";
@@ -717,7 +726,7 @@ $obj->status = "100";
 
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Purchase Of $pname Was Not Successful";
 								$obj->Previous_Balance = $bal;
@@ -781,7 +790,7 @@ $obj->status = "200";
 																default:
 																	$obj = new stdClass;
 																	$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																	$obj->status = "200";
 																	$obj->Successful = "false";
 																	$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~ For VTU";
 																	die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -817,7 +826,7 @@ $obj->status = "200";
 																default:
 																	$obj = new stdClass;
 																	$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																	$obj->status = "200";
 																	$obj->Successful = "false";
 																	$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~ For Share & Sell";
 																	die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -854,7 +863,7 @@ $obj->status = "200";
 																default:
 																	$obj = new stdClass;
 																	$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																	$obj->status = "200";
 																	$obj->Successful = "false";
 																	$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~ For Awuf";
 																	die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -866,7 +875,7 @@ $obj->status = "200";
 
 															$obj = new stdClass;
 															$wpdb->query('ROLLBACK');
-$obj->status = "200";
+															$obj->status = "200";
 															$obj->Successful = "false";
 															$obj->message = "AIRTIME SERVICE TYPE INVALID";
 															die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -898,7 +907,7 @@ $obj->status = "200";
 												} else {
 													$obj = new stdClass;
 													$wpdb->query('ROLLBACK');
-$obj->status = "200";
+													$obj->status = "200";
 													$obj->Successful = "false";
 													$obj->message = "Query Not Airtime or Data";
 													die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -927,7 +936,7 @@ $obj->status = "200";
 																	} else {
 																		$obj = new stdClass;
 																		$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																		$obj->status = "200";
 																		$obj->Successful = "false";
 																		$obj->message = "VTU Airtime Not Available";
 																		die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -949,7 +958,7 @@ $obj->status = "200";
 																		default:
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~";
 																			die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -1050,7 +1059,7 @@ $obj->status = "200";
 
 																			$obj = new stdClass;
 																			$wpdb->query('COMMIT');
-$obj->status = "100";
+																			$obj->status = "100";
 																			$obj->request_id = $uniqidvalue;
 																			$obj->Successful = "true";
 																			$obj->message = "Purchase Was Successful";
@@ -1095,7 +1104,7 @@ $obj->status = "100";
 																			//VTU AIRTIME FAILED
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Purchase Was Not Successful";
 																			$obj->Previous_Balance = $bal;
@@ -1311,7 +1320,7 @@ $obj->status = "200";
 																			//POST VTU AIRTIME SUCCESS
 																			$obj = new stdClass;
 																			$wpdb->query('COMMIT');
-$obj->status = "100";
+																			$obj->status = "100";
 																			$obj->request_id = $uniqidvalue;
 
 																			$obj->Successful = "true";
@@ -1357,7 +1366,7 @@ $obj->status = "100";
 																			//POST VTU AIRTIME FAILED
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Purchase Was Not Successful";
 																			$obj->Previous_Balance = $bal;
@@ -1378,7 +1387,7 @@ $obj->status = "200";
 																	} else {
 																		$obj = new stdClass;
 																		$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																		$obj->status = "200";
 																		$obj->Successful = "false";
 																		$obj->message = "Shared Airtime Not Available";
 																		die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -1402,7 +1411,7 @@ $obj->status = "200";
 																		default:
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~";
 																			die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -1497,7 +1506,7 @@ $obj->status = "200";
 
 																			$obj = new stdClass;
 																			$wpdb->query('COMMIT');
-$obj->status = "100";
+																			$obj->status = "100";
 																			$obj->request_id = $uniqidvalue;
 
 																			$obj->Successful = "true";
@@ -1543,7 +1552,7 @@ $obj->status = "100";
 
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Purchase Was Not Successful";
 																			$obj->Previous_Balance = $bal;
@@ -1736,7 +1745,7 @@ $obj->status = "200";
 
 																			$obj = new stdClass;
 																			$wpdb->query('COMMIT');
-$obj->status = "100";
+																			$obj->status = "100";
 																			$obj->request_id = $uniqidvalue;
 
 																			$obj->Successful = "true";
@@ -1781,7 +1790,7 @@ $obj->status = "100";
 
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Purchase Was Not Successful";
 																			$obj->Previous_Balance = $bal;
@@ -1804,7 +1813,7 @@ $obj->status = "200";
 																	} else {
 																		$obj = new stdClass;
 																		$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																		$obj->status = "200";
 																		$obj->Successful = "false";
 																		$obj->message = "Awuf Airtime Not Available";
 																		die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -1827,7 +1836,7 @@ $obj->status = "200";
 																		default:
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~";
 																			die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -1923,7 +1932,7 @@ $obj->status = "200";
 
 																			$obj = new stdClass;
 																			$wpdb->query('COMMIT');
-$obj->status = "100";
+																			$obj->status = "100";
 																			$obj->request_id = $uniqidvalue;
 
 																			$obj->Successful = "true";
@@ -1968,7 +1977,7 @@ $obj->status = "100";
 
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Purchase Was Not Successful";
 																			$obj->Previous_Balance = $bal;
@@ -2155,7 +2164,7 @@ $obj->status = "200";
 
 																			$obj = new stdClass;
 																			$wpdb->query('COMMIT');
-$obj->status = "100";
+																			$obj->status = "100";
 																			$obj->request_id = $uniqidvalue;
 
 																			$obj->Successful = "true";
@@ -2201,7 +2210,7 @@ $obj->status = "100";
 
 																			$obj = new stdClass;
 																			$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																			$obj->status = "200";
 																			$obj->Successful = "false";
 																			$obj->message = "Purchase Was Not Successful";
 																			$obj->Previous_Balance = $bal;
@@ -2220,7 +2229,7 @@ $obj->status = "200";
 																//Balance too low airtime
 																$obj = new stdClass;
 																$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																$obj->status = "200";
 																$obj->Successful = "false";
 																$obj->message = "Balance Too Low";
 																$obj->Balance = $bal;
@@ -2230,7 +2239,7 @@ $obj->status = "200";
 														} else {
 															$obj = new stdClass;
 															$wpdb->query('ROLLBACK');
-$obj->status = "200";
+															$obj->status = "200";
 															$obj->Successful = "false";
 															$obj->message = "Amount Not Specified";
 															die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2239,7 +2248,7 @@ $obj->status = "200";
 													} else {
 														$obj = new stdClass;
 														$wpdb->query('ROLLBACK');
-$obj->status = "200";
+														$obj->status = "200";
 														$obj->Successful = "false";
 														$obj->message = "Receipient Not Specified";
 														die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2249,7 +2258,7 @@ $obj->status = "200";
 												} else {
 													$obj = new stdClass;
 													$wpdb->query('ROLLBACK');
-$obj->status = "200";
+													$obj->status = "200";
 													$obj->Successful = "false";
 													$obj->message = "Network Not Specified";
 													die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2268,7 +2277,7 @@ $obj->status = "200";
 										} else {
 											$obj = new stdClass;
 											$wpdb->query('ROLLBACK');
-$obj->status = "200";
+											$obj->status = "200";
 											$obj->Sucessful = "false";
 											$obj->message = "AIRTIME TYPE NOT ENTERED";
 
@@ -2278,7 +2287,7 @@ $obj->status = "200";
 									} else {
 										$obj = new stdClass;
 										$wpdb->query('ROLLBACK');
-$obj->status = "200";
+										$obj->status = "200";
 										$obj->Sucessful = "false";
 										$obj->message = "AMOUNT NOT SPECIFIED";
 
@@ -2287,7 +2296,7 @@ $obj->status = "200";
 								} else {
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Sucessful = "false";
 									$obj->message = "NETWORK NOT SPECIFIED";
 
@@ -2297,7 +2306,7 @@ $obj->status = "200";
 							} else {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Sucessful = "false";
 								$obj->message = "RECIPIENT NOT SPECIFIED";
 
@@ -2468,7 +2477,7 @@ $obj->status = "200";
 																				default:
 																					$obj = new stdClass;
 																					$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																					$obj->status = "200";
 																					$obj->Successful = "false";
 																					$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~ For SME (p-$plan a-$disamount)";
 																					die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2505,7 +2514,7 @@ $obj->status = "200";
 																				default:
 																					$obj = new stdClass;
 																					$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																					$obj->status = "200";
 																					$obj->Successful = "false";
 																					$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~ For Gifting (p-$plan a-$disamount)";
 																					die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2542,7 +2551,7 @@ $obj->status = "200";
 																				default:
 																					$obj = new stdClass;
 																					$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																					$obj->status = "200";
 																					$obj->Successful = "false";
 																					$obj->message = "Network Invalid ~MTN - GLO - 9MOBILE - AIRTEL~ For Corporate (p-$plan a-$disamount)";
 																					die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2555,7 +2564,7 @@ $obj->status = "200";
 																	} else {
 																		$obj = new stdClass;
 																		$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																		$obj->status = "200";
 																		$obj->Successful = "false";
 																		$obj->message = "DATA PLAN AND DATA NETWORK DOESN'T MATCH";
 																		die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2565,7 +2574,7 @@ $obj->status = "200";
 																} else {
 																	$obj = new stdClass;
 																	$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																	$obj->status = "200";
 																	$obj->Successful = "false";
 																	$obj->message = "DATA TYPE AND DATA PLAN DOESN'T MATCH";
 																	die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2576,7 +2585,7 @@ $obj->status = "200";
 															} else {
 																$obj = new stdClass;
 																$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																$obj->status = "200";
 																$obj->Successful = "false";
 																$obj->message = "DATAPLAN INVALID";
 																die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2605,7 +2614,7 @@ $obj->status = "200";
 														} else {
 															$obj = new stdClass;
 															$wpdb->query('ROLLBACK');
-$obj->status = "200";
+															$obj->status = "200";
 															$obj->Successful = "false";
 															$obj->message = "SME Data Plan not Available";
 															die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -2719,7 +2728,7 @@ $obj->status = "200";
 
 																$obj = new stdClass;
 																$wpdb->query('COMMIT');
-$obj->status = "100";
+																$obj->status = "100";
 																$obj->request_id = $uniqidvalue;
 
 																$obj->Successful = "true";
@@ -2771,7 +2780,7 @@ $obj->status = "100";
 
 																$obj = new stdClass;
 																$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																$obj->status = "200";
 																$obj->Successful = "false";
 																$obj->message = "Purchase Of $plan_name Was Not Successful";
 																$obj->Previous_Balance = $bal;
@@ -2964,7 +2973,7 @@ $obj->status = "200";
 
 																$obj = new stdClass;
 																$wpdb->query('COMMIT');
-$obj->status = "100";
+																$obj->status = "100";
 																$obj->request_id = $uniqidvalue;
 
 																$obj->Successful = "true";
@@ -3013,7 +3022,7 @@ $obj->status = "100";
 
 																$obj = new stdClass;
 																$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																$obj->status = "200";
 																$obj->Successful = "false";
 																$obj->message = "Purchase Of $plan_name Was Not Successful";
 																$obj->Previous_Balance = $bal;
@@ -3039,7 +3048,7 @@ $obj->status = "200";
 														} else {
 															$obj = new stdClass;
 															$wpdb->query('ROLLBACK');
-$obj->status = "200";
+															$obj->status = "200";
 															$obj->Successful = "false";
 															$obj->message = "Gifting/Direct Data Plan not Available";
 															die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -3153,7 +3162,7 @@ $obj->status = "200";
 
 																$obj = new stdClass;
 																$wpdb->query('COMMIT');
-$obj->status = "100";
+																$obj->status = "100";
 																$obj->request_id = $uniqidvalue;
 
 																$obj->Successful = "true";
@@ -3206,7 +3215,7 @@ $obj->status = "100";
 
 																$obj = new stdClass;
 																$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																$obj->status = "200";
 																$obj->Successful = "false";
 																$obj->message = "Purchase Of $plan_name Was Not Successful";
 																$obj->Previous_Balance = $bal;
@@ -3393,7 +3402,7 @@ $obj->status = "200";
 
 																$obj = new stdClass;
 																$wpdb->query('COMMIT');
-$obj->status = "100";
+																$obj->status = "100";
 																$obj->request_id = $uniqidvalue;
 
 																$obj->Successful = "true";
@@ -3446,7 +3455,7 @@ $obj->status = "100";
 
 																$obj = new stdClass;
 																$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																$obj->status = "200";
 																$obj->Successful = "false";
 																$obj->message = "Purchase Of $plan_name Was Not Successful";
 																$obj->Previous_Balance = $bal;
@@ -3473,7 +3482,7 @@ $obj->status = "200";
 														} else {
 															$obj = new stdClass;
 															$wpdb->query('ROLLBACK');
-$obj->status = "200";
+															$obj->status = "200";
 															$obj->Successful = "false";
 															$obj->message = "Corporate Data Plan not Available";
 															die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -3595,7 +3604,7 @@ $obj->status = "200";
 
 																$obj = new stdClass;
 																$wpdb->query('COMMIT');
-$obj->status = "100";
+																$obj->status = "100";
 																$obj->request_id = $uniqidvalue;
 
 																$obj->Successful = "true";
@@ -3647,7 +3656,7 @@ $obj->status = "100";
 
 																$obj = new stdClass;
 																$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																$obj->status = "200";
 																$obj->Successful = "false";
 																$obj->message = "Purchase Of $plan_name Was Not Successful";
 																$obj->Previous_Balance = $bal;
@@ -3842,7 +3851,7 @@ $obj->status = "200";
 
 																$obj = new stdClass;
 																$wpdb->query('COMMIT');
-$obj->status = "100";
+																$obj->status = "100";
 																$obj->request_id = $uniqidvalue;
 
 																$obj->Successful = "true";
@@ -3894,7 +3903,7 @@ $obj->status = "100";
 
 																$obj = new stdClass;
 																$wpdb->query('ROLLBACK');
-$obj->status = "200";
+																$obj->status = "200";
 																$obj->Successful = "false";
 																$obj->message = "Purchase Of $plan_name Was Not Successful";
 																$obj->Previous_Balance = $bal;
@@ -3916,7 +3925,7 @@ $obj->status = "200";
 													// Balance too low data
 													$obj = new stdClass;
 													$wpdb->query('ROLLBACK');
-$obj->status = "200";
+													$obj->status = "200";
 													$obj->Successful = "false";
 													$obj->message = "Balance Too Low";
 													$obj->Balance = $bal;
@@ -3929,7 +3938,7 @@ $obj->status = "200";
 										} else {
 											$obj = new stdClass;
 											$wpdb->query('ROLLBACK');
-$obj->status = "200";
+											$obj->status = "200";
 											$obj->Sucessful = "false";
 											$obj->message = "RECIPIENT NOT SPECIFIED";
 
@@ -3940,7 +3949,7 @@ $obj->status = "200";
 
 										$obj = new stdClass;
 										$wpdb->query('ROLLBACK');
-$obj->status = "200";
+										$obj->status = "200";
 										$obj->Sucessful = "false";
 										$obj->message = "DATAPLAN NOT SPECIFIED";
 
@@ -3952,7 +3961,7 @@ $obj->status = "200";
 								} else {
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Sucessful = "false";
 									$obj->message = "NETWORK NOT SPECIFIED";
 
@@ -3965,7 +3974,7 @@ $obj->status = "200";
 							} else {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Sucessful = "false";
 								$obj->message = "DATA TYPE NOT ENTERED";
 
@@ -4070,7 +4079,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->message = "Contact Us Right Now For A Reload";
 
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4101,7 +4110,7 @@ $obj->status = "200";
 
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->message = "$type Pin In $quantity Pieces @ NGN$amount Is Currently Not Available";
 
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4175,7 +4184,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->message = "$type Pin Of NGN$amount Currently Not Available";
 
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4191,7 +4200,7 @@ $obj->status = "200";
 
 								$obj = new stdClass;
 								$wpdb->query('COMMIT');
-$obj->status = "100";
+								$obj->status = "100";
 								$obj->pin = "$pinow";
 								$obj->message = "Recharge Card Pin Generated.";
 
@@ -4200,7 +4209,7 @@ $obj->status = "100";
 
 								$obj = new stdClass;
 								$wpdb->query('COMMIT');
-$obj->status = "100";
+								$obj->status = "100";
 								$obj->message = "$total Recharge Card Pins Generated.";
 								$obj->pin = $added_pin;
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4208,7 +4217,7 @@ $obj->status = "100";
 							} else {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->message = "No Pin Available";
 
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4444,7 +4453,7 @@ $obj->status = "200";
 
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->message = "$type Pin Of $plan.$volume Currently Not Available";
 
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4478,7 +4487,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->message = "Contact Us Right Now For A Reload";
 
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4564,7 +4573,7 @@ $obj->status = "200";
 
 										$obj = new stdClass;
 										$wpdb->query('ROLLBACK');
-$obj->status = "200";
+										$obj->status = "200";
 										$obj->message = "$value PIN @ NGN$amount Currently Not Available";
 
 										die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4581,7 +4590,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('COMMIT');
-$obj->status = "100";
+									$obj->status = "100";
 									$obj->pin = $added_pin;
 
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4589,7 +4598,7 @@ $obj->status = "100";
 
 									$obj = new stdClass;
 									$wpdb->query('COMMIT');
-$obj->status = "100";
+									$obj->status = "100";
 									$obj->amount = "$total Number Of Data Cards Have Been Printed. Check History For Lists";
 									$obj->pin = $added_pin;
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4597,7 +4606,7 @@ $obj->status = "100";
 								} else {
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->message = "Error Fetching Database";
 
 									die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4622,7 +4631,7 @@ $obj->status = "200";
 							if (!is_plugin_active("vprest/vprest.php") || vp_getoption("setcable") != "checked" || !is_plugin_active("bcmv/bcmv.php")) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Cable Currently Not Available";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4631,35 +4640,35 @@ $obj->status = "200";
 							if (!isset($_REQUEST["iuc"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "IUC required";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (!isset($_REQUEST["type"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "TYPE is required";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (strtolower($_REQUEST["type"]) != "dstv" && strtolower($_REQUEST["type"]) != "gotv" && strtolower($_REQUEST["type"]) != "startimes") {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Type must be dstv, gotv, startimes";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (!isset($_REQUEST["plan"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "PLAN required";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (!is_numeric($_REQUEST["plan"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "PLAN Must Be Numeric";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4673,7 +4682,7 @@ $obj->status = "200";
 							if ($plan < 1 || $plan > 20) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "PLAN ID DOES NOT EXIST";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4684,7 +4693,7 @@ $obj->status = "200";
 							if (strtolower($return_plan_code) == "false" || empty($return_plan_code)) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "PLAN ID EXISTS BUT NOT ASSIGNED";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4727,7 +4736,7 @@ $obj->status = "200";
 							if ($bal < $amount) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Insufficient Balance";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -4807,7 +4816,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Was Not Successful";
 									$obj->Previous_Balance = $bal;
@@ -4870,7 +4879,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('COMMIT');
-$obj->status = "100";
+									$obj->status = "100";
 									$obj->Successful = "true";
 									$obj->request_id = $uniqidvalue;
 
@@ -4916,7 +4925,7 @@ $obj->status = "100";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Was Pending";
 									$obj->Previous_Balance = $bal;
@@ -4962,7 +4971,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Was Pending";
 									$obj->Previous_Balance = $bal;
@@ -5062,7 +5071,7 @@ $obj->status = "200";
 
 										$obj = new stdClass;
 										$wpdb->query('ROLLBACK');
-$obj->status = "200";
+										$obj->status = "200";
 										$obj->Successful = "false";
 										$obj->Message = "Purchase Of $actual_name Plan Was Not Successful";
 										$obj->Previous_Balance = $bal;
@@ -5122,7 +5131,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Was Not Successful";
 									$obj->Previous_Balance = $bal;
@@ -5178,7 +5187,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('COMMIT');
-$obj->status = "100";
+									$obj->status = "100";
 									$obj->Successful = "true";
 									$obj->request_id = $uniqidvalue;
 
@@ -5222,7 +5231,7 @@ $obj->status = "100";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan is Pending";
 									$obj->Previous_Balance = $bal;
@@ -5269,7 +5278,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Failed";
 									$obj->Previous_Balance = $bal;
@@ -5290,7 +5299,7 @@ $obj->status = "200";
 							if (!is_plugin_active("vprest/vprest.php") || vp_getoption("setbill") != "checked" && !is_plugin_active("bcmv/bcmv.php")) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Bill Currently Not Available";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -5299,42 +5308,42 @@ $obj->status = "200";
 							if (!isset($_REQUEST["meter_number"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Meter_Number required";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (!isset($_REQUEST["type"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "TYPE required";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (strtolower($_REQUEST["type"]) != "prepaid" && strtolower($_REQUEST["type"]) != "postpaid") {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Type must be prepaid or postpaid";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (!isset($_REQUEST["plan"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "PLAN required";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (!isset($_REQUEST["amount"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Amount required";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 							} elseif (!is_numeric($_REQUEST["amount"])) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Amount is Invalid";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -5350,7 +5359,7 @@ $obj->status = "200";
 							if ($plan < 1 || $plan > 15) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "PLAN ID DOES NOT EXIST";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -5361,7 +5370,7 @@ $obj->status = "200";
 							if (strtolower($return_plan_code) == "false" || empty($return_plan_code)) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "PLAN ID EXISTS BUT NOT ASSIGNED";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -5403,7 +5412,7 @@ $obj->status = "200";
 							if ($bal < $amount) {
 								$obj = new stdClass;
 								$wpdb->query('ROLLBACK');
-$obj->status = "200";
+								$obj->status = "200";
 								$obj->Successful = "false";
 								$obj->message = "Insufficient Balance";
 								die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -5483,7 +5492,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Was Not Successful";
 									$obj->Previous_Balance = $bal;
@@ -5546,7 +5555,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('COMMIT');
-$obj->status = "100";
+									$obj->status = "100";
 									$obj->Successful = "true";
 									$obj->request_id = $uniqidvalue;
 
@@ -5594,7 +5603,7 @@ $obj->status = "100";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Was Pending";
 									$obj->Previous_Balance = $bal;
@@ -5640,7 +5649,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Was Pending";
 									$obj->Previous_Balance = $bal;
@@ -5742,7 +5751,7 @@ $obj->status = "200";
 
 										$obj = new stdClass;
 										$wpdb->query('ROLLBACK');
-$obj->status = "200";
+										$obj->status = "200";
 										$obj->Successful = "false";
 										$obj->Message = "Purchase Of $actual_name Plan Was Not Successful";
 										$obj->Previous_Balance = $bal;
@@ -5802,7 +5811,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Was Not Successful";
 									$obj->Previous_Balance = $bal;
@@ -5858,7 +5867,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('COMMIT');
-$obj->status = "100";
+									$obj->status = "100";
 									$obj->Successful = "true";
 									$obj->request_id = $uniqidvalue;
 
@@ -5903,7 +5912,7 @@ $obj->status = "100";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan is Pending";
 									$obj->Previous_Balance = $bal;
@@ -5950,7 +5959,7 @@ $obj->status = "200";
 
 									$obj = new stdClass;
 									$wpdb->query('ROLLBACK');
-$obj->status = "200";
+									$obj->status = "200";
 									$obj->Successful = "false";
 									$obj->Message = "Purchase Of $actual_name Plan Failed";
 									$obj->Previous_Balance = $bal;
@@ -6002,7 +6011,7 @@ $obj->status = "200";
 elseif (isset($_REQUEST['id']) && !isset($_REQUEST['apikey'])) {//IF ISSET ID BUT NO UD
 	$obj = new stdClass;
 	$wpdb->query('ROLLBACK');
-$obj->status = "200";
+	$obj->status = "200";
 	$obj->Successful = "false";
 	$obj->message = "API KEY EXPECTED";
 	die(json_encode($obj, JSON_UNESCAPED_SLASHES));
@@ -6010,14 +6019,14 @@ $obj->status = "200";
 
 	$obj = new stdClass;
 	$wpdb->query('ROLLBACK');
-$obj->status = "200";
+	$obj->status = "200";
 	$obj->Successful = "false";
 	$obj->message = "ID EXPECTED";
 	die(json_encode($obj, JSON_UNESCAPED_SLASHES));
 } else {// IF NONE
 	$obj = new stdClass;
 	$wpdb->query('ROLLBACK');
-$obj->status = "200";
+	$obj->status = "200";
 	$obj->Successful = "false";
 	$obj->message = "NO VALID CREDENTIALS PROVIDED";
 	die(json_encode($obj, JSON_UNESCAPED_SLASHES));
